@@ -4,3 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+libc = "0.2"
+tempfile = "3.15.0"
+log = { version = "0.4.22", optional = true }
+
+[features]
+log = ["dep:log"]
