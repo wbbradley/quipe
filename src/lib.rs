@@ -36,9 +36,9 @@ fn open(path: &Path, flags: libc::c_int, mode: libc::c_int) -> Result<RawFd> {
     };
     if fd < 0 {
         Err(Error::new(format!(
-            "Failed to open file at {} [errno={errno}]",
+            "failed to open file at {} [errno={errno}]",
             path.display(),
-            errno = Errno::from(fd)
+            errno = Errno::latest()
         )))
     } else {
         Ok(fd)
@@ -147,7 +147,7 @@ fn flock(fd: RawFd, operation: libc::c_int) -> Result<()> {
 impl PipeQueue {
     pub fn create(path: &Path) -> Result<Self> {
         mkfifo(path, libc::S_IRWXU)?;
-        let write_fd = open(path, libc::O_WRONLY | libc::O_NONBLOCK, 0)?;
+        let write_fd = open(path, libc::O_WRONLY, 0)?;
         Ok(PipeQueue { write_fd })
     }
 
@@ -166,7 +166,7 @@ impl PipeQueue {
 
 impl PipeReader {
     pub fn new(path: &Path) -> Result<Self> {
-        let read_fd = open(path, libc::O_RDONLY | libc::O_NONBLOCK, 0)?;
+        let read_fd = open(path, libc::O_RDONLY, 0)?;
         Ok(PipeReader { read_fd })
     }
 
@@ -210,8 +210,10 @@ mod tests {
 
     #[test]
     fn test_mainline_scenario() {
-        let temp_dir = tempdir().unwrap();
-        let path = temp_dir.path().join("my_queue");
+        let temp_dir = std::path::PathBuf::from("/Users/wbbradley/fifo"); //tempdir().unwrap();
+        let path = temp_dir.join("my_queue");
+        std::fs::create_dir_all(temp_dir).unwrap();
+
         let queue = PipeQueue::create(&path).unwrap();
 
         // Create multiple readers
